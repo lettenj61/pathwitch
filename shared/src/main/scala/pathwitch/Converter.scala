@@ -24,7 +24,7 @@ object Converter {
     val len = src0.length
 
     // ---- apply configuration
-    if (config.addSlash && src0.startsWith("*")) {
+    if (config.prefixed && src0.startsWith("*")) {
       sb.append('/')
     }
 

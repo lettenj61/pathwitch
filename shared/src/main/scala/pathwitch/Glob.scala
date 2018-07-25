@@ -6,18 +6,12 @@ import pathwitch.Glob.Separator
 /**
   * Configuration for glob matcher.
   *
-  * @param separator
-  * @param forceSlash
-  * @param addSlash
+  * @param separator  Path separator character
+  * @param unixStyle  Force unix style path separator ("/")
+  * @param prefixed   Automatically add leading "/" for those patterns start with "*"
   */
-case class GlobConfig(
-  /** Path separator character */
-  separator: Separator,
-  /** Whether to convert all separator character in input to '/' when matching */
-  forceSlash: Boolean = false,
-  /** Whether to prepend separator character when pattern starts with '*' */
-  addSlash: Boolean = false
-)
+case class GlobConfig(separator: Separator, unixStyle: Boolean = false,
+                      prefixed: Boolean = false)
 
 /**
   * Basic functionality of glob.
@@ -104,7 +98,7 @@ case class Glob(pattern: String, config: GlobConfig) extends GlobLike {
     * @return
     */
   def matches(input: String): Boolean = {
-    val source0 = if (config.forceSlash) input.replaceAll("\\\\", "/") else input
+    val source0 = if (config.unixStyle) input.replaceAll("\\\\", "/") else input
     regex.findFirstIn(source0).nonEmpty
   }
 
@@ -117,17 +111,26 @@ case class Glob(pattern: String, config: GlobConfig) extends GlobLike {
   */
 object Glob {
 
-  def apply(pattern: String, forceSlash: Boolean = false,
-            addSlash: Boolean = false)(implicit separator: Separator): Glob =
-    new Glob(pattern, GlobConfig(separator, forceSlash, addSlash))
+  /**
+    * Create new glob object.
+    * @param pattern
+    * @param unixStyle
+    * @param prefixed
+    * @param separator
+    * @return
+    */
+  def apply(pattern: String, unixStyle: Boolean = false,
+            prefixed: Boolean = false)(implicit separator: Separator): Glob =
+    new Glob(pattern, GlobConfig(separator, unixStyle, prefixed))
 
   /**
     * Create new glob set.
     * @param patterns
     * @return
     */
-  def globSet(patterns: Iterable[String])(implicit separator: Separator): GlobSet = {
-    val config = GlobConfig(separator)
+  def globSet(patterns: Iterable[String], unixStyle: Boolean = false,
+              prefixed: Boolean = false)(implicit separator: Separator): GlobSet = {
+    val config = GlobConfig(separator, unixStyle, prefixed)
     new GlobSet(patterns.toList.map(p => new Glob(p, config)))
   }
 
@@ -146,4 +149,12 @@ object Glob {
     * File path separator in Windows platform ("\").
     */
   case object Backslash extends Separator('\\')
+
+  def separatorFromChar(char: Char): Separator = char match {
+    case '/'  => Glob.Slash
+    case '\\' => Glob.Backslash
+    case _    => throw new IllegalArgumentException(
+      s"'$char' is not a valid path separator"
+    )
+  }
 }
