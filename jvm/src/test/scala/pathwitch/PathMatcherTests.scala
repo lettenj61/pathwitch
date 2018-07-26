@@ -11,8 +11,7 @@ object PathMatcherTests extends TestSuite with ProcessHelper {
       val repo = scala.sys.env.get("PATHWITCH_TEST_PATH").map { path =>
         File(path)
       } getOrElse {
-        // gitClone("scala", "scala", File.newTemporaryDirectory().toJava).toScala
-        File.temp / "pathwitch-test4895595895637010140"
+        gitClone("scala", "scala", File.newTemporaryDirectory().toJava).toScala
       }
       val src = repo/"src"
       val answers = src.glob("**").toList.map(_.toString)

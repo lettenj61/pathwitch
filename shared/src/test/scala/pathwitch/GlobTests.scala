@@ -14,14 +14,10 @@ object GlobTests extends TestSuite {
     Glob.globSet(patterns.split("\n"))
 
   def checkTree(glob: Glob, ref: Seq[String])(implicit tp: framework.TestPath) = {
-//    println(s"${tp.value.mkString(".")} => $glob")
     val left = glob.filter(fileTree).sortBy(s => s)
     val right = ref.sortBy(s => s)
     assert(left == right)
   }
-
-  def skip(args: Any*)(implicit path: framework.TestPath) =
-    "SKIPPING " + path.value.mkString(".")
 
   // Borrowed from:
   // https://github.com/pathikrit/better-files/blob/bfccb5041239bc5413afade4218ec1fb90d3e3d5/core/src/test/scala/better/files/GlobSpec.scala
