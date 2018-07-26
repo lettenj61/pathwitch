@@ -131,7 +131,7 @@ object Glob {
   def globSet(patterns: Iterable[String], unixStyle: Boolean = false,
               prefixed: Boolean = false)(implicit separator: Separator): GlobSet = {
     val config = GlobConfig(separator, unixStyle, prefixed)
-    new GlobSet(patterns.toList.map(p => new Glob(p, config)))
+    new GlobSet(patterns.toList.distinct.map(p => new Glob(p, config)))
   }
 
   /**
