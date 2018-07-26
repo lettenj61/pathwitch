@@ -64,22 +64,22 @@ object GlobTests extends TestSuite {
         "all" - {
           "doubleStar" - checkTree(Glob("**"), fileTree)
           "prefix" - checkTree(
-            Glob("tree/**"),
+            Glob("tests/tree/**"),
             fileTree.drop(2) // Anything other than "tests" and "tests/tree"
           )
         }
         "single" - {
-          Glob("one.txt").filter(fileTree) ==> List("tests/tree/one.txt")
+          Glob("tests/**/one.txt").filter(fileTree) ==> List("tests/tree/one.txt")
         }
         "partial" - {
-          Glob("a/a.txt").filter(fileTree) ==> List("tests/tree/a/a.txt")
+          Glob("tests/**/a/a.txt").filter(fileTree) ==> List("tests/tree/a/a.txt")
         }
         "extension" - checkTree(
-          Glob("*.txt"),
+          Glob("**/*.txt"),
           fileTree.filter(_.endsWith(".txt"))
         )
         "subdirectory" - {
-          "dirname" - checkTree(
+          "ambiguousFile" - checkTree(
             Glob("**/a/*.txt"),
             List(
               "tests/tree/a/a.txt",
@@ -87,15 +87,15 @@ object GlobTests extends TestSuite {
               "tests/tree/b/a/ba.txt"
             )
           )
-          "filename" - checkTree(
-            Glob("tree/*/x.txt"),
+          "ambiguousParent" - checkTree(
+            Glob("tests/tree/*/x.txt"),
             List(
               "tests/tree/a/x.txt",
               "tests/tree/c/x.txt"
             )
           )
-          "dirGlobWithFileGlob" - checkTree(
-            Glob("tree/*/*.txt"),
+          "ambiguousFileAndParent" - checkTree(
+            Glob("tests/tree/*/*.txt"),
             List(
               "tests/tree/a/a.txt",
               "tests/tree/a/x.txt",
@@ -111,17 +111,9 @@ object GlobTests extends TestSuite {
               "tests/tree/c/x.txt"
             )
             "noPrefix" - checkTree(Glob("**/x.txt"), expected)
-            "prefix"- checkTree(Glob("tree/**/x.txt"), expected)
+            "prefix"- checkTree(Glob("tests/tree/**/x.txt"), expected)
           }
         }
-        "parentDirectory" - checkTree(
-          Glob("a/*.txt"),
-          List(
-            "tests/tree/a/a.txt",
-            "tests/tree/a/x.txt",
-            "tests/tree/b/a/ba.txt"
-          )
-        )
         "deepFileGlob" - {
           val expected = List(
             "tests/tree/one.txt",
@@ -137,7 +129,7 @@ object GlobTests extends TestSuite {
             "tests/tree/c/x.txt"
           )
           "noPrefix" - checkTree(Glob("**.txt"), expected)
-          "prefix" - checkTree(Glob("tree/**.txt"), expected)
+          "prefix" - checkTree(Glob("tests/tree/**.txt"), expected)
         }
       }
     } // Glob
@@ -145,7 +137,7 @@ object GlobTests extends TestSuite {
       "ignore" - {
         "all" - checkIgnore("**".globSet, Nil)
         "dirGlob" - checkIgnore(
-          "tree/**".globSet,
+          "tests/tree/**".globSet,
           List("tests/tree", "tests")
         )
         "filename"- {

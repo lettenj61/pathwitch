@@ -145,7 +145,7 @@ case class Glob(pattern: String, config: GlobConfig) extends GlobLike {
     */
   def matches(input: String): Boolean = {
     val that = if (config.unixStyle) input.replaceAll("\\\\", "/") else input
-    find(that).nonEmpty
+    find(that).contains(that)
   }
 
   /**

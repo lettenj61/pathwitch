@@ -15,14 +15,12 @@ object PathMatcherTests extends TestSuite with ProcessHelper {
       }
       val src = repo/"src"
       val answers = src.glob("**").toList.map(_.toString)
-      def assertFiles(syntax: String, relPath: Option[String] = None, unixStyle: Boolean = true) = {
+      def assertFiles(syntax: String, unixStyle: Boolean = true) = {
         val expected = src.glob(syntax).toList.map(_.toString).sortBy(s => s)
-        val glob = Glob(syntax, unixStyle = unixStyle)
-        val result = relPath match {
-          case Some(base) =>
-            answers.filter(f => glob.matchesIn(f, base)).sortBy(s => s)
-          case None => glob.filter(answers).sortBy(s => s)
-        }
+        // Work around for windows tests
+        val normalizedSyntax = (src.toString.replaceAll("\\\\", "/")) + "/" + syntax
+        val glob = Glob(normalizedSyntax, unixStyle = unixStyle)
+        val result = glob.filter(answers).sortBy(s => s)
         assert(result == expected)
         result.size
       }
@@ -40,7 +38,7 @@ object PathMatcherTests extends TestSuite with ProcessHelper {
         * - assertFiles("**.md")
         * - assertFiles("**/*[Uu]t*.*")
       }
-      "singleStar" - assertFiles("*", Some(src.toString))
+      "singleStar" - assertFiles("*")
     }
   }
 }

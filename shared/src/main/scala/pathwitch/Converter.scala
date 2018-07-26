@@ -16,8 +16,8 @@ object Converter {
     */
   def globToRegex(pattern: String, config: GlobConfig): String = {
     val trimmed = pattern.trim
-    if (trimmed == "*") "[^/\\\\]*"
-    else if (trimmed.forall(_ == '*')) ".*"
+    if (trimmed == "*") "^[^/\\\\]*"
+    else if (trimmed.forall(_ == '*')) "^.*"
     else {
       val sb = StringBuilder.newBuilder
       var inClass = 0
@@ -26,6 +26,7 @@ object Converter {
       var i = 0
       val len = trimmed.length
 
+      sb.append('^')
       while (i < len) {
         val c = trimmed.charAt(i)
         (c: @switch) match {
@@ -48,7 +49,7 @@ object Converter {
             }
           case '*' =>
             if (inClass == 0) {
-              if ((i + 1) >= len) sb.append(".*")
+              if ((i + 1) >= len) sb.append("[^/\\\\]*")
               else {
                 var stars = 1
                 var next = trimmed.charAt(i + stars)
