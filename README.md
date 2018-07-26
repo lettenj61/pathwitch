@@ -61,7 +61,7 @@ Now we can instantiate `Glob`s with its factory:
 
 ```scala
 scala> val glob = Glob("*.scala")
-glob: pathwitch.Glob = Glob(*.scala,[^/\\]*\.scala)
+glob: pathwitch.Glob = Glob(*.scala,^[^/\\]*\.scala)
 ```
 
 If we forget to define implicit `Separator`, instantiation will fail with:
@@ -87,10 +87,10 @@ Note that this implicit object never exists on JS platform, as there may be no `
 
 ```scala
 scala> glob.regex
-res1: scala.util.matching.Regex = [^/\\]*\.scala
+res1: scala.util.matching.Regex = ^[^/\\]*\.scala
 
 scala> glob.regex.pattern
-res2: java.util.regex.Pattern = [^/\\]*\.scala
+res2: java.util.regex.Pattern = ^[^/\\]*\.scala
 ```
 
 A glob can be used to match `String`s.
@@ -100,7 +100,7 @@ scala> glob.matches("Predef.scala") // or simply glob("...")
 res3: Boolean = true
 ```
 
-As glob implements `scala.Function2[String, Boolean]`, you can pass it as predicate to any arbitary object:
+As glob implements `scala.Function2[String, Boolean]`, you can pass it as predicate to any higher order functions:
 
 ```scala
 scala> List("A.scala", "BC.scala", "D.java").filter(glob)
@@ -111,10 +111,38 @@ res4: List[String] = List(A.scala, BC.scala)
 
 GlobSet is a utility to use multiple patterns in matching strings.
 
+Typically we construct a GlobSet from collection which its items are `String`.
+
+```scala
+scala> var globSet = Glob.globSet(Array("*.js", "*.ts"))
+globSet: pathwitch.GlobSet = GlobSet(Glob(*.js,^[^/\\]*\.js),Glob(*.ts,^[^/\\]*\.ts))
+```
+
 By default, `matches` function of `GlobSet` returns `true` when any of its pattern matches to the string.
 
 ```scala
+scala> globSet matches "foo.js"
+res0: Boolean = true
 
+scala> globSet matches "bar.ts"
+res1: Boolean = true
+```
+
+And fails iff every pattern failed:
+
+```scala
+scala> globSet matches "other.coffee"
+res2: Boolean = false
+```
+
+It provides `ignoreAllIn` function, which rejects any matched items from `Seq`s, `Iterable`s, or `Iterator`s.
+
+```scala
+scala> val files = List("grep.js", "cat.js", "echo.ts", "salad.coffee")
+files: List[String] = List(grep.js, cat.js, echo.ts, salad.coffee)
+
+scala> globSet.ignoreAllIn(files)
+res3: Seq[String] = List(salad.coffee)
 ```
 
 ### Configuration
@@ -126,9 +154,8 @@ Here is short example of how to configure globs with `GlobConfig`:
 ```scala
 val config = GlobConfig(
   separator = Glob.Slash, // Should be either of Glob.Slash or Glob.Backslash
-  unixStyle = false, // Replace all '\' character to '/' on matching
-  prefixSlash = false, // Prepend '/' when pattern starts with glob stars
-  suffixStar = false // Append glob star when pattern ends with '/'
+  unixStyle = false, // If true, replace all '\' character to '/' on matching
+  convertPath = false // If true, convert every path separator to `config.separator` when building regexp
 )
 ```
 
