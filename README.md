@@ -61,7 +61,7 @@ Now we can instantiate `Glob`s with its factory:
 
 ```scala
 scala> val glob = Glob("*.scala")
-glob: pathwitch.Glob = Glob(*.scala,^[^/\\]*\.scala)
+glob: pathwitch.Glob = Glob(*.scala,[^/\\]*\.scala)
 ```
 
 If we forget to define implicit `Separator`, instantiation will fail with:
@@ -87,10 +87,10 @@ Note that this implicit object never exists on JS platform, as there may be no `
 
 ```scala
 scala> glob.regex
-res1: scala.util.matching.Regex = ^[^/\\]*\.scala
+res1: scala.util.matching.Regex = [^/\\]*\.scala
 
 scala> glob.regex.pattern
-res2: java.util.regex.Pattern = ^[^/\\]*\.scala
+res2: java.util.regex.Pattern = [^/\\]*\.scala
 ```
 
 A glob can be used to match `String`s.
@@ -115,7 +115,7 @@ Typically we construct a GlobSet from collection which its items are `String`.
 
 ```scala
 scala> var globSet = Glob.globSet(Array("*.js", "*.ts"))
-globSet: pathwitch.GlobSet = GlobSet(Glob(*.js,^[^/\\]*\.js),Glob(*.ts,^[^/\\]*\.ts))
+globSet: pathwitch.GlobSet = GlobSet(Glob(*.js,[^/\\]*\.js),Glob(*.ts,[^/\\]*\.ts))
 ```
 
 By default, `matches` function of `GlobSet` returns `true` when any of its pattern matches to the string.

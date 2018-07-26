@@ -12,15 +12,18 @@ object GlobTests extends TestSuite {
   }
 
   def checkTree(glob: Glob, ref: Seq[String]): Unit = {
-    val left = glob.filter(fileTree).sortBy(s => s)
-    val right = ref.sortBy(s => s)
-    assert(left == right)
+    val left = glob.filter(fileTree).sorted
+    assert(left == ref.sorted)
+  }
+
+  def checkRelPath(glob: Glob, ref: Seq[String], root: String): Unit = {
+    val left = fileTree.filter(f => glob.matchesIn(f, root)).sorted
+    assert(left == ref.sorted)
   }
 
   def checkIgnore(globSet: GlobSet, ref: Seq[String]): Unit = {
-    val left = globSet.ignoreAllIn(fileTree).sortBy(s => s)
-    val right = ref.sortBy(s => s)
-    assert(left == right)
+    val left = globSet.ignoreAllIn(fileTree).sorted
+    assert(left == ref.sorted)
   }
 
   // Borrowed from:
@@ -130,6 +133,16 @@ object GlobTests extends TestSuite {
           )
           "noPrefix" - checkTree(Glob("**.txt"), expected)
           "prefix" - checkTree(Glob("tests/tree/**.txt"), expected)
+        }
+        "relPath" - {
+          "resolve" - checkRelPath(
+            Glob("a/?.txt"),
+            List(
+              "tests/tree/a/a.txt",
+              "tests/tree/a/x.txt"
+            ),
+            "tests/tree/"
+          )
         }
       }
     } // Glob

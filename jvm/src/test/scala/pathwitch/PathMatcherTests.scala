@@ -16,11 +16,11 @@ object PathMatcherTests extends TestSuite with ProcessHelper {
       val src = repo/"src"
       val answers = src.glob("**").toList.map(_.toString)
       def assertFiles(syntax: String, unixStyle: Boolean = true) = {
-        val expected = src.glob(syntax).toList.map(_.toString).sortBy(s => s)
+        val expected = src.glob(syntax).toList.map(_.toString).sorted
         // Work around for windows tests
         val normalizedSyntax = (src.toString.replaceAll("\\\\", "/")) + "/" + syntax
         val glob = Glob(normalizedSyntax, unixStyle = unixStyle)
-        val result = glob.filter(answers).sortBy(s => s)
+        val result = glob.filter(answers).sorted
         assert(result == expected)
         result.size
       }
