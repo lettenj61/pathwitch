@@ -15,16 +15,32 @@ object PathMatcherTests extends TestSuite with ProcessHelper {
       }
       val src = repo/"src"
       val answers = src.glob("**").toList.map(_.toString)
-      def assertFiles(syntax: String) = {
+      def assertFiles(syntax: String, relPath: Option[String] = None, unixStyle: Boolean = true) = {
         val expected = src.glob(syntax).toList.map(_.toString).sortBy(s => s)
-        val globbed = Glob(syntax, unixStyle = true).filter(answers).sortBy(s => s)
-        assert(globbed == expected)
-        (globbed.size, expected.size)
+        val glob = Glob(syntax, unixStyle = unixStyle)
+        val result = relPath match {
+          case Some(base) =>
+            answers.filter(f => glob.matchesIn(f, base)).sortBy(s => s)
+          case None => glob.filter(answers).sortBy(s => s)
+        }
+        assert(result == expected)
+        result.size
       }
-      * - assertFiles("library/scala/*.scala")
-      * - assertFiles("**/Abstract*12*")
-      * - assertFiles("**/*Se[tq].scala")
-      * - assertFiles("**.md")
+      "relative" - {
+
+      }
+      "globStars" - {
+        * - assertFiles("library/scala/*.scala")
+        * - assertFiles("library/scala/**/*.java")
+      }
+      "each"- {
+        * - assertFiles("**/collection/**")
+        * - assertFiles("**/Abstract*12*")
+        * - assertFiles("**/*Se[tq].scala")
+        * - assertFiles("**.md")
+        * - assertFiles("**/*[Uu]t*.*")
+      }
+      "singleStar" - assertFiles("*", Some(src.toString))
     }
   }
 }

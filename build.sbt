@@ -19,7 +19,8 @@ lazy val pathwitch = crossProject(JSPlatform, JVMPlatform)
   ).jvmSettings(
     libraryDependencies += "com.github.pathikrit" %% "better-files" % "3.5.0" % "test",
     fork in Test := true,
-    envVars in Test := sys.env.filterKeys(_ startsWith "PATHWITCH")
+    envVars in Test := sys.env.filterKeys(_ startsWith "PATHWITCH"),
+    initialCommands in (Test, console) := "import pathwitch._, Implicits._\r\n"
   )
 
 lazy val pathwitchJS = pathwitch.js

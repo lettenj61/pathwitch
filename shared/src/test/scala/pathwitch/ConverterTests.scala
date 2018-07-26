@@ -5,13 +5,19 @@ import pathwitch.Converter.globToRegex
 import utest._
 
 object ConverterTests extends TestSuite {
-  val config: GlobConfig = GlobConfig(separator = Glob.Slash)
-  def sepCheck(l: String, r: String, sep: Char) = { globToRegex(l, config) ==> r }
-  def checkUnix(l: String, r: String) = sepCheck(l, r, '/')
-  def checkWindows(l: String, r: String) = sepCheck(l, r, '\\')
+  def sepCheck(l: String, r: String, sep: Char): Unit = {
+    val config = GlobConfig(separator = Glob.separatorFromChar(sep))
+    globToRegex(l, config) ==> r
+  }
+  def checkUnix(l: String, r: String): Unit = sepCheck(l, r, '/')
   val tests = Tests {
     "Converter" - {
+      "trailingBackslash" - checkUnix("scala\\", "scala\\\\")
       "star" - {
+        "single" - checkUnix("*", "[^/\\\\]*")
+        "multiple" - {
+          (2 until 1000) foreach(i => checkUnix("*" * i, ".*"))
+        }
         "middle" - checkUnix("sc*la", "sc[^/\\\\]*la")
         "escaped" - checkUnix("sc\\*la", "sc\\*la")
       }
@@ -43,9 +49,22 @@ object ConverterTests extends TestSuite {
       }
       "slashQ_E" - checkUnix("\\Qscala\\E", "\\\\Qscala\\\\E")
       "group" - {
-        "convert" - checkUnix("{java,scala}", "(java|scala)")
+        "convertBraces" - checkUnix("{java,scala}", "(java|scala)")
         "escapeBraces" - checkUnix("\\{java,scala\\}hello", "\\{java,scala\\}hello")
         "skipCommaEscape" - checkUnix("{java\\,scala}", "(java,scala)")
+      }
+      "config" - {
+        "convertPathSeparator" - {
+          val pattern = "foo/bar/baz"
+          "forced" - {
+            val result = globToRegex(pattern, GlobConfig(Glob.Backslash, convertPath = true))
+            result ==> "foo\\\\bar\\\\baz"
+          }
+          "literally" - {
+            val result = globToRegex(pattern, GlobConfig(Glob.Backslash))
+            result ==> pattern
+          }
+        }
       }
     }
   }

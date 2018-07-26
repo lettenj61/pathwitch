@@ -52,6 +52,14 @@ object GlobTests extends TestSuite {
 
   val tests = Tests {
     "Glob" - {
+      "config" - {
+        "unixStyle" - {
+          val text = "C:\\middleOfNowhere\\dir_ect_ory\\abc.file"
+          val pattern = "**/*.file"
+          "enabled" - { Glob(pattern, unixStyle = true).matches(text) ==> true }
+          "disabled" - { Glob(pattern).matches(text) ==> false }
+        }
+      }
       "matching" - {
         "all" - {
           "doubleStar" - checkTree(Glob("**"), fileTree)
