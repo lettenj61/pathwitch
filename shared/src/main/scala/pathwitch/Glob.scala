@@ -180,7 +180,7 @@ object Glob {
             unixStyle: Boolean = false,
             convertPath: Boolean = false
            )(implicit separator: Separator): Glob =
-    new Glob(pattern, GlobConfig(separator, unixStyle))
+    new Glob(pattern, GlobConfig(separator, unixStyle, convertPath))
 
   /**
     * Create new glob set.
@@ -195,7 +195,7 @@ object Glob {
               unixStyle: Boolean = false,
               convertPath: Boolean = false
              )(implicit separator: Separator): GlobSet = {
-    val config = GlobConfig(separator, unixStyle)
+    val config = GlobConfig(separator, unixStyle, convertPath)
     GlobSet(patterns, config)
   }
 
