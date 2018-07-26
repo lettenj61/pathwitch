@@ -71,12 +71,18 @@ case class GlobSet private[pathwitch] (rules: Seq[Glob]) extends GlobLike {
     * @param values
     * @return
     */
-  def ignore(values: Seq[String]): Seq[String] =
+  def ignoreAllIn(values: Seq[String]): Seq[String] =
     values.filter(this.noMatch)
-  def ignore(values: Iterable[String]): Iterable[String] =
+  def ignoreAllIn(values: Iterable[String]): Iterable[String] =
     values.filter(this.noMatch)
-  def ignore(values: Iterator[String]): Iterator[String] =
+  def ignoreAllIn(values: Iterator[String]): Iterator[String] =
     values.filter(this.noMatch)
+
+  /**
+    * Convert rules to [[Set]].
+    * @return
+    */
+  def toSet: Set[Glob] = rules.toSet
 
   override def toString(): String =
     rules.mkString("GlobSet(", ",", ")")

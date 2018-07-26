@@ -18,7 +18,7 @@ object GlobTests extends TestSuite {
   }
 
   def checkIgnore(globSet: GlobSet, ref: Seq[String]): Unit = {
-    val left = globSet.ignore(fileTree).sortBy(s => s)
+    val left = globSet.ignoreAllIn(fileTree).sortBy(s => s)
     val right = ref.sortBy(s => s)
     assert(left == right)
   }
