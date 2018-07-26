@@ -5,16 +5,20 @@ import utest._
 
 object GlobTests extends TestSuite {
   implicit val separator: Separator = Glob.Slash
-  implicit class StringCheck(val lines: String) extends AnyVal {
+  implicit class StringExt(val lines: String) extends AnyVal {
+    def globSet: GlobSet = Glob.globSet(lines.stripMargin.trim.split("\n"))
     def checkMatch(glob: Glob): Unit =
       lines.split("\n").forall(glob)
   }
 
-  def makeGlobSet(patterns: String): GlobSet =
-    Glob.globSet(patterns.split("\n"))
-
-  def checkTree(glob: Glob, ref: Seq[String])(implicit tp: framework.TestPath) = {
+  def checkTree(glob: Glob, ref: Seq[String]): Unit = {
     val left = glob.filter(fileTree).sortBy(s => s)
+    val right = ref.sortBy(s => s)
+    assert(left == right)
+  }
+
+  def checkIgnore(globSet: GlobSet, ref: Seq[String]): Unit = {
+    val left = globSet.ignore(fileTree).sortBy(s => s)
     val right = ref.sortBy(s => s)
     assert(left == right)
   }
@@ -51,7 +55,10 @@ object GlobTests extends TestSuite {
       "matching" - {
         "all" - {
           "doubleStar" - checkTree(Glob("**"), fileTree)
-          "prefix" - checkTree(Glob("tree/**"), fileTree.drop(2))
+          "prefix" - checkTree(
+            Glob("tree/**"),
+            fileTree.drop(2) // Anything other than "tests" and "tests/tree"
+          )
         }
         "single" - {
           Glob("one.txt").filter(fileTree) ==> List("tests/tree/one.txt")
@@ -125,6 +132,45 @@ object GlobTests extends TestSuite {
           "prefix" - checkTree(Glob("tree/**.txt"), expected)
         }
       }
-    }
+    } // Glob
+    "GlobSet" - {
+      "ignore" - {
+        "all" - checkIgnore("**".globSet, Nil)
+        "dirGlob" - checkIgnore(
+          "tree/**".globSet,
+          List("tests/tree", "tests")
+        )
+        "filename"- {
+          val ignore = "**/x.txt".globSet
+          checkIgnore(
+            ignore,
+            fileTree.filterNot(_ endsWith "x.txt")
+          )
+        }
+        "filenameWithLength" - {
+          val ignore = "**/?.txt".globSet
+          checkIgnore(
+            ignore,
+            List(
+              "tests",
+              "tests/tree",
+              "tests/tree/a",
+              "tests/tree/a/a2",
+              "tests/tree/a/a2/a2.txt",
+              "tests/tree/a/a.not",
+              "tests/tree/b",
+              "tests/tree/b/a",
+              "tests/tree/b/a/ba.txt",
+              "tests/tree/c",
+              "tests/tree/empty",
+              "tests/tree/one.txt",
+              "tests/tree/readme.md",
+              "tests/tree/three.txt",
+              "tests/tree/two.txt"
+            )
+          )
+        }
+      }
+    } // GlobSet
   }
 }
