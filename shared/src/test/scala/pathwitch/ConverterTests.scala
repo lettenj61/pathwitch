@@ -5,7 +5,7 @@ import pathwitch.Converter.globToRegex
 import utest._
 
 object ConverterTests extends TestSuite {
-  implicit val config: GlobConfig = GlobConfig(separator = Glob.Slash)
+  val config: GlobConfig = GlobConfig(separator = Glob.Slash)
   def sepCheck(l: String, r: String, sep: Char) = { globToRegex(l, config) ==> r }
   def checkUnix(l: String, r: String) = sepCheck(l, r, '/')
   def checkWindows(l: String, r: String) = sepCheck(l, r, '\\')

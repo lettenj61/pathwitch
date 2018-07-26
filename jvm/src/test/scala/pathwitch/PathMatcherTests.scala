@@ -3,7 +3,7 @@ package pathwitch
 import better.files.File
 import better.files.FileOps
 import utest._
-import pathwitch.ImplicitSeparator._
+import pathwitch.Implicits.pathSeparator
 
 object PathMatcherTests extends TestSuite with ProcessHelper {
   val tests = Tests {

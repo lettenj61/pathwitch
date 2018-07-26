@@ -2,6 +2,9 @@ package pathwitch
 
 import scala.annotation.switch
 
+/**
+  * Glob to Java Regex converter.
+  */
 object Converter {
   /**
     * Convert glob pattern string into Java RegExp pattern.
@@ -24,9 +27,10 @@ object Converter {
     val len = src0.length
 
     // ---- apply configuration
-    if (config.prefixed && src0.startsWith("*")) {
+    if (config.prefixSlash && src0.startsWith("*")) {
       sb.append('/')
     }
+    val suffix = if (config.suffixStar) ".*" else ""
 
     while (i < len) {
       val c = src0.charAt(i)
@@ -47,16 +51,16 @@ object Converter {
           if (inClass == 0) {
             if ((i + 1) >= len) sb.append(".*")
             else {
-              var moreStars = 1
-              var next = src0.charAt(i + moreStars)
-              while ((i + moreStars) < len && next == '*') {
-                moreStars += 1
-                if (i + moreStars < len) {
-                  next = src0.charAt(i + moreStars)
+              var stars = 1
+              var next = src0.charAt(i + stars)
+              while ((i + stars) < len && next == '*') {
+                stars += 1
+                if (i + stars < len) {
+                  next = src0.charAt(i + stars)
                 }
               }
-              if (moreStars > 1) {
-                i += (moreStars - 1)
+              if (stars > 1) {
+                i += (stars - 1)
                 sb.append(".*")
               } else {
                 sb.append("[^/\\\\]*")
@@ -93,6 +97,7 @@ object Converter {
       }
       i += 1
     }
+    sb.append(suffix)
     sb.result
   }
 }

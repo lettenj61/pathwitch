@@ -6,12 +6,13 @@ import pathwitch.Glob.Separator
 /**
   * Configuration for glob matcher.
   *
-  * @param separator  Path separator character
-  * @param unixStyle  Force unix style path separator ("/")
-  * @param prefixed   Automatically add leading "/" for those patterns start with "*"
+  * @param separator    Path separator character
+  * @param unixStyle    Force unix style path separator ("/")
+  * @param prefixSlash  Automatically add leading "/" for those patterns start with "*"
+  * @param suffixStar   Append "**" when pattern ends with "/", like gitignore
   */
 case class GlobConfig(separator: Separator, unixStyle: Boolean = false,
-                      prefixed: Boolean = false)
+                      prefixSlash: Boolean = false, suffixStar: Boolean = false)
 
 /**
   * Basic functionality of glob.
@@ -45,8 +46,9 @@ trait GlobLike extends (String => Boolean) {
 }
 
 /**
+  * Set of glob rules to easily test multiple patterns.
   *
-  * @param rules
+  * @param rules list of globs, it is a [[Seq]] just because to preserve orders
   */
 case class GlobSet private[pathwitch] (rules: Seq[Glob]) extends GlobLike {
   /**
@@ -89,6 +91,21 @@ case class GlobSet private[pathwitch] (rules: Seq[Glob]) extends GlobLike {
 }
 
 /**
+  * GlobSet companion.
+  */
+object GlobSet {
+  /**
+    * Create new [[GlobSet]].
+    *
+    * @param patterns
+    * @param config
+    * @return
+    */
+  def apply(patterns: Iterable[String], config: GlobConfig): GlobSet =
+    new GlobSet(patterns.toList.distinct.map(p => new Glob(p, config)))
+}
+
+/**
   * Immutable glob pattern, backed up by Java RegExp syntax.
   * @param pattern
   */
@@ -108,6 +125,16 @@ case class Glob(pattern: String, config: GlobConfig) extends GlobLike {
     regex.findFirstIn(source0).nonEmpty
   }
 
+  /**
+    * Create new [[Glob]] object that shares pattern string with `this` but
+    * uses specified configuration.
+    *
+    * @param newConfig
+    * @return
+    */
+  def withConfig(newConfig: GlobConfig): Glob =
+    new Glob(pattern, newConfig)
+
   override def toString(): String =
     "Glob(" + pattern + "," + regex.toString + ")"
 }
@@ -119,25 +146,37 @@ object Glob {
 
   /**
     * Create new glob object.
+    *
     * @param pattern
     * @param unixStyle
-    * @param prefixed
+    * @param prefixSlash
+    * @param suffixStar
     * @param separator
     * @return
     */
-  def apply(pattern: String, unixStyle: Boolean = false,
-            prefixed: Boolean = false)(implicit separator: Separator): Glob =
-    new Glob(pattern, GlobConfig(separator, unixStyle, prefixed))
+  def apply(pattern: String,
+            unixStyle: Boolean = false,
+            prefixSlash: Boolean = false,
+            suffixStar: Boolean = false
+           )(implicit separator: Separator): Glob =
+    new Glob(pattern, GlobConfig(separator, unixStyle, prefixSlash, suffixStar))
 
   /**
     * Create new glob set.
+    *
     * @param patterns
+    * @param unixStyle
+    * @param prefixSlash
+    * @param suffixStar
     * @return
     */
-  def globSet(patterns: Iterable[String], unixStyle: Boolean = false,
-              prefixed: Boolean = false)(implicit separator: Separator): GlobSet = {
-    val config = GlobConfig(separator, unixStyle, prefixed)
-    new GlobSet(patterns.toList.distinct.map(p => new Glob(p, config)))
+  def globSet(patterns: Iterable[String],
+              unixStyle: Boolean = false,
+              prefixSlash: Boolean = false,
+              suffixStar: Boolean = false
+             )(implicit separator: Separator): GlobSet = {
+    val config = GlobConfig(separator, unixStyle, prefixSlash, suffixStar)
+    GlobSet(patterns, config)
   }
 
   /**
