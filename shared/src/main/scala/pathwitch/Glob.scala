@@ -8,11 +8,11 @@ import pathwitch.Glob.Separator
   *
   * @param separator    Path separator character
   * @param unixStyle    Force unix style path separator ("/")
-  * @param prefixSlash  Automatically add leading "/" for those patterns start with "*"
-  * @param suffixStar   Append "**" when pattern ends with "/", like gitignore
+  * @param convertPath  Convert path character when building regex patterns
   */
-case class GlobConfig(separator: Separator, unixStyle: Boolean = false,
-                      prefixSlash: Boolean = false, suffixStar: Boolean = false)
+case class GlobConfig(separator: Separator,
+                      unixStyle: Boolean = false,
+                      convertPath: Boolean = false)
 
 /**
   * Basic functionality of glob.
@@ -149,33 +149,25 @@ object Glob {
     *
     * @param pattern
     * @param unixStyle
-    * @param prefixSlash
-    * @param suffixStar
     * @param separator
     * @return
     */
   def apply(pattern: String,
-            unixStyle: Boolean = false,
-            prefixSlash: Boolean = false,
-            suffixStar: Boolean = false
+            unixStyle: Boolean = false
            )(implicit separator: Separator): Glob =
-    new Glob(pattern, GlobConfig(separator, unixStyle, prefixSlash, suffixStar))
+    new Glob(pattern, GlobConfig(separator, unixStyle))
 
   /**
     * Create new glob set.
     *
     * @param patterns
     * @param unixStyle
-    * @param prefixSlash
-    * @param suffixStar
     * @return
     */
   def globSet(patterns: Iterable[String],
-              unixStyle: Boolean = false,
-              prefixSlash: Boolean = false,
-              suffixStar: Boolean = false
+              unixStyle: Boolean = false
              )(implicit separator: Separator): GlobSet = {
-    val config = GlobConfig(separator, unixStyle, prefixSlash, suffixStar)
+    val config = GlobConfig(separator, unixStyle)
     GlobSet(patterns, config)
   }
 
@@ -183,17 +175,17 @@ object Glob {
     * Path separator enum type.
     * @param char
     */
-  sealed abstract class Separator(val char: Char)
+  sealed abstract class Separator(val char: Char, val regexString: String)
 
   /**
     * File path separator in Unix-like platform ("/").
     */
-  case object Slash extends Separator('/')
+  case object Slash extends Separator('/', "/")
 
   /**
     * File path separator in Windows platform ("\").
     */
-  case object Backslash extends Separator('\\')
+  case object Backslash extends Separator('\\', "\\\\")
 
   def separatorFromChar(char: Char): Separator = char match {
     case '/'  => Glob.Slash

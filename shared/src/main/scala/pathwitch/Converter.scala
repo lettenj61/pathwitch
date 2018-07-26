@@ -26,12 +26,6 @@ object Converter {
     var i = 0
     val len = src0.length
 
-    // ---- apply configuration
-    if (config.prefixSlash && src0.startsWith("*")) {
-      sb.append('/')
-    }
-    val suffix = if (config.suffixStar) ".*" else ""
-
     while (i < len) {
       val c = src0.charAt(i)
       (c: @switch) match {
@@ -97,7 +91,6 @@ object Converter {
       }
       i += 1
     }
-    sb.append(suffix)
     sb.result
   }
 }
